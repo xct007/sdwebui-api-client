@@ -13,7 +13,8 @@
 		"test:coverage": "jest --coverage",
 		"lint": "eslint .",
 		"typedoc": "typedoc",
-		"prepublishOnly": "exit 0"
+		"prepublishOnly": "npm run build",
+		"prepare": "npm run build"
 	},
 	"repository": {
 		"type": "git",
