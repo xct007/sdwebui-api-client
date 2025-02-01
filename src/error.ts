@@ -6,8 +6,13 @@
  * @extends {Error}
  */
 export class SDWebUIClientError extends Error {
-	constructor(message: string) {
+	/**
+	 * Additional data associated with the error.
+	 */
+	public data?: unknown;
+	constructor(message: string, data?: unknown) {
 		super(message);
-		this.name = "SDClientError";
+		this.name = "SDWebUIClientError";
+		this.data = data;
 	}
 }

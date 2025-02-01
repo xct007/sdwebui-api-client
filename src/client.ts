@@ -91,14 +91,19 @@ class Client {
 		if (res.statusCode && (res.statusCode < 200 || res.statusCode >= 300)) {
 			return onreject(
 				new SDWebUIClientError(
-					`Request failed with status code ${res.statusCode}`
+					`Request failed with status code ${res.statusCode}`,
+					this._parseResponse(response)
 				)
 			);
 		}
+		onfulfill(this._parseResponse(response));
+	}
+
+	private _parseResponse<T>(response: string): T {
 		try {
-			onfulfill(JSON.parse(response));
-		} catch (_err) {
-			onfulfill(response as unknown as T);
+			return JSON.parse(response);
+		} catch (err) {
+			return response as unknown as T;
 		}
 	}
 
@@ -120,7 +125,7 @@ class Client {
 				? params.toString()
 				: params
 					? new URLSearchParams(params).toString()
-					: "";
+					: undefined;
 		const fullPath = query ? `${path}?${query}` : path;
 		return this._makeRequest<T>("GET", fullPath, undefined, opts);
 	}
