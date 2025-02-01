@@ -138,17 +138,11 @@ export type Txt2ImgOptions = {
 	 */
 	disable_extra_networks: boolean;
 	/**
-	 * Idk what this means
-	 *
-	 *
-	 * Ref: [Is it better to set Firstpass width/height to 0/0, 512/512, or ...](https://www.reddit.com/r/StableDiffusion/comments/yhxs7z/is_it_better_to_set_firstpass_widthheight_to_00/)
-	 * ::The first pass is creating something you might prefer to the second.
+	 * First pass image
 	 */
 	firstpass_image: string | null;
 	/**
-	 * Idk what this means
-	 *
-	 * Maybe it's injecting comments into the generated image
+	 * Comments
 	 */
 	comments: Record<string, any> | null;
 	/**
@@ -205,8 +199,6 @@ export type Txt2ImgOptions = {
 	hr_negative_prompt: string;
 	/**
 	 * Force Task ID
-	 *
-	 * Idk
 	 */
 	force_task_id: string | null;
 	/**
@@ -231,8 +223,7 @@ export type Txt2ImgOptions = {
 	 */
 	send_images: boolean;
 	/**
-	 * Save the images
-	 * meaning the images will be saved to the disk
+	 * Save the generated images
 	 */
 	save_images: boolean;
 	/**
@@ -240,8 +231,7 @@ export type Txt2ImgOptions = {
 	 */
 	alwayson_scripts: Record<string, any> | null;
 	/**
-	 * Maybe this is used to inject
-	 * some text into the generated image
+	 * Infotext
 	 */
 	infotext: string | null;
 };
@@ -264,6 +254,22 @@ export type OverrideSettings = {
 	 * Override current model
 	 */
 	sd_model_checkpoint: string;
+	/**
+	 * CLIP SKIP
+	 */
+	CLIP_stop_at_last_layers: number;
+	/**
+	 * Enable add metadata to the image
+	 */
+	enable_pnginfo: boolean;
+	/**
+	 * Add model hash to the info
+	 */
+	add_model_hash_to_info: boolean;
+	/**
+	 * Add Model name to the info
+	 */
+	add_model_name_to_info: boolean;
 } & Record<string, any>;
 
 /**
