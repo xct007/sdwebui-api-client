@@ -265,8 +265,8 @@ export class SDWebUIApi extends Shared {
 	 * Reference: [get_hypernetworks](https://github.com/AUTOMATIC1111/stable-diffusion-webui/blob/master/modules/api/api.py#L734)
 	 * @returns All available hyper networks
 	 */
-	hyperNetwork(): Promise<HyperNetwork[]> {
-		return this._client.get("/sdapi/v1/hypernetwork");
+	hyperNetworks(): Promise<HyperNetwork[]> {
+		return this._client.get("/sdapi/v1/hypernetworks");
 	}
 	/**
 	 * Get all available face restorers.
