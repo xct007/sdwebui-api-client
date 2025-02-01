@@ -1,14 +1,17 @@
 import * as https from "https";
-import { Client } from "../src/client";
+import { URL } from "url";
+import { Client, ClientOptions } from "../src/client";
+import { SDWebUIClientError } from "../src/error";
 
 jest.mock("https");
 
 describe("Client", () => {
 	const baseUrl = "https://api.example.com";
+	const headers = { Authorization: "Bearer token" };
 	let client: Client;
 
 	beforeEach(() => {
-		client = new Client({ baseUrl });
+		client = new Client({ baseUrl, headers });
 	});
 
 	afterEach(() => {
@@ -17,16 +20,67 @@ describe("Client", () => {
 
 	describe("constructor", () => {
 		it("should initialize with baseUrl and headers", () => {
-			const headers = { Authorization: "Bearer token" };
-			const client = new Client({ baseUrl, headers });
 			expect(client).toHaveProperty("baseUrl", baseUrl);
 			expect(client).toHaveProperty("headers", headers);
 		});
 	});
 
-	describe("_makeRequest", () => {
-		it("should make a successful request", async () => {
-			const responseData = { success: true };
+	describe("get", () => {
+		it("should make a GET request and return response", async () => {
+			const responseData = { data: "test" };
+			const mockRequest = {
+				on: jest.fn(),
+				end: jest.fn(),
+			};
+			const mockResponse = {
+				on: jest.fn((event, callback) => {
+					if (event === "data")
+						callback(JSON.stringify(responseData));
+					if (event === "end") callback();
+				}),
+				statusCode: 200,
+			};
+
+			(https.request as jest.Mock).mockImplementation(
+				(url, options, callback) => {
+					callback(mockResponse);
+					return mockRequest;
+				}
+			);
+
+			const response = await client.get("/test");
+
+			expect(response).toEqual(responseData);
+			expect(https.request).toHaveBeenCalledWith(
+				new URL("/test", baseUrl),
+				expect.objectContaining({
+					method: "GET",
+					headers: expect.objectContaining(headers),
+				}),
+				expect.any(Function)
+			);
+		});
+
+		it("should handle request errors", async () => {
+			const mockRequest = {
+				on: jest.fn((event, callback) => {
+					if (event === "error") callback(new Error("Request error"));
+				}),
+				end: jest.fn(),
+			};
+
+			(https.request as jest.Mock).mockReturnValue(mockRequest);
+
+			await expect(client.get("/test")).rejects.toThrow(
+				SDWebUIClientError
+			);
+		});
+	});
+
+	describe("post", () => {
+		it("should make a POST request with data and return response", async () => {
+			const requestData = { key: "value" };
+			const responseData = { data: "test" };
 			const mockRequest = {
 				on: jest.fn(),
 				write: jest.fn(),
@@ -38,6 +92,7 @@ describe("Client", () => {
 						callback(JSON.stringify(responseData));
 					if (event === "end") callback();
 				}),
+				statusCode: 200,
 			};
 
 			(https.request as jest.Mock).mockImplementation(
@@ -47,9 +102,20 @@ describe("Client", () => {
 				}
 			);
 
-			const result = await client["_makeRequest"]("GET", "/test");
-			expect(result).toEqual(responseData);
-			expect(mockRequest.end).toHaveBeenCalled();
+			const response = await client.post("/test", requestData);
+
+			expect(response).toEqual(responseData);
+			expect(mockRequest.write).toHaveBeenCalledWith(
+				JSON.stringify(requestData)
+			);
+			expect(https.request).toHaveBeenCalledWith(
+				new URL("/test", baseUrl),
+				expect.objectContaining({
+					method: "POST",
+					headers: expect.objectContaining(headers),
+				}),
+				expect.any(Function)
+			);
 		});
 
 		it("should handle request errors", async () => {
@@ -61,62 +127,11 @@ describe("Client", () => {
 				end: jest.fn(),
 			};
 
-			(https.request as jest.Mock).mockImplementation(() => mockRequest);
+			(https.request as jest.Mock).mockReturnValue(mockRequest);
 
 			await expect(
-				client["_makeRequest"]("GET", "/test")
-			).rejects.toThrow("Request error");
-		});
-	});
-
-	describe("post", () => {
-		it("should make a POST request", async () => {
-			const mockMakeRequest = jest
-				.spyOn(client as any, "_makeRequest")
-				.mockResolvedValue({ success: true });
-			const data = { key: "value" };
-
-			const result = await client.post("/test", data);
-			expect(mockMakeRequest).toHaveBeenCalledWith(
-				"POST",
-				"/test",
-				data,
-				undefined
-			);
-			expect(result).toEqual({ success: true });
-		});
-	});
-
-	describe("get", () => {
-		it("should make a GET request with query parameters", async () => {
-			const mockMakeRequest = jest
-				.spyOn(client as any, "_makeRequest")
-				.mockResolvedValue({ success: true });
-			const params = { key: "value" };
-
-			const result = await client.get("/test", params);
-			expect(mockMakeRequest).toHaveBeenCalledWith(
-				"GET",
-				"/test?key=value",
-				undefined,
-				undefined
-			);
-			expect(result).toEqual({ success: true });
-		});
-
-		it("should make a GET request without query parameters", async () => {
-			const mockMakeRequest = jest
-				.spyOn(client as any, "_makeRequest")
-				.mockResolvedValue({ success: true });
-
-			const result = await client.get("/test");
-			expect(mockMakeRequest).toHaveBeenCalledWith(
-				"GET",
-				"/test",
-				undefined,
-				undefined
-			);
-			expect(result).toEqual({ success: true });
+				client.post("/test", { key: "value" })
+			).rejects.toThrow(SDWebUIClientError);
 		});
 	});
 });
