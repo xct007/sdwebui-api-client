@@ -302,7 +302,7 @@ export class SDWebUIApi extends Shared {
 	 * @returns All available embeddings
 	 */
 	embeddings<T extends string>(): Promise<Embedding<T>[]> {
-		return this._client.get("/sdapi/v1/hypernetwork");
+		return this._client.get("/sdapi/v1/embeddings");
 	}
 	/**
 	 * Refresh embeddings.
@@ -397,7 +397,7 @@ export class SDWebUIApi extends Shared {
 	 * @returns Information about the reloading
 	 */
 	reloadCheckPoint(): Promise<string> {
-		return this._client.post("/sdapi/v1/unload-checkpoint");
+		return this._client.post("/sdapi/v1/reload-checkpoint");
 	}
 	/**
 	 * Get all available scripts.
